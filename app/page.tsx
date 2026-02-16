@@ -1,65 +1,96 @@
-import Image from "next/image";
+import Content from '@/components/content';
+import Header from '@/components/header';
+import { GroupedSchedule } from '@/lib/definitions';
+import clientPromise from '@/lib/mongodb';
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+async function getGroupedSchedules(): Promise<GroupedSchedule> {
+	const client = await clientPromise;
+	const db = client.db(process.env.MONGODB_DB);
+
+	const schedules = await db
+		.collection('schedules')
+		.aggregate([
+			{ $unwind: '$courses' },
+
+			{
+				$lookup: {
+					from: 'lecturers',
+					localField: 'courses.lecturers',
+					foreignField: '_id',
+					as: 'courses.lecturers',
+				},
+			},
+
+			{
+				$group: {
+					_id: {
+						scheduleId: '$_id',
+						day: '$day',
+						time: '$time',
+					},
+					courses: { $push: '$courses' },
+				},
+			},
+
+			{
+				$project: {
+					_id: '$_id.scheduleId',
+					day: '$_id.day',
+					time: '$_id.time',
+					courses: 1,
+				},
+			},
+		])
+		.toArray();
+
+	const days = [
+		'senin',
+		'selasa',
+		'rabu',
+		'kamis',
+		'jumat',
+		'sabtu',
+		'minggu',
+	];
+
+	const grouped: GroupedSchedule = {};
+
+	days.forEach((day) => {
+		grouped[day] = [];
+	});
+
+	for (const item of schedules) {
+		grouped[item.day].push({
+			id: item._id.toString(),
+			time: item.time,
+			courses: item.courses,
+		});
+	}
+
+	return grouped;
+}
+
+export default async function Page() {
+	const groupedSchedules = await getGroupedSchedules();
+
+	return (
+		<>
+			<Header />
+
+			<main className='px-4'>
+				<section className='max-w-5xl mx-auto mt-34 pb-10 flex flex-col gap-10'>
+					<div className='flex flex-col gap-2 items-center'>
+						<h1 className='font-semibold text-3xl md:text-4xl lg:text-5xl text-center'>
+							Jadwal kuliah
+						</h1>
+						<p className='text-balance text-center'>
+							Biar nggak salah kelas, nggak salah hari, dan nggak
+							salah prioritas.
+						</p>
+					</div>
+					<Content groupedSchedules={groupedSchedules} />
+				</section>
+			</main>
+		</>
+	);
 }
