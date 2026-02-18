@@ -9,17 +9,14 @@ type Props = {
 	groupedSchedules: GroupedSchedule;
 };
 
+function getTodayInIndonesian(): string {
+	return new Intl.DateTimeFormat('id-ID', { weekday: 'long' })
+		.format(new Date())
+		.toLowerCase();
+}
+
 export default function Content({ groupedSchedules }: Props) {
-	const getTodayInIndonesian = () => {
-		return new Intl.DateTimeFormat('id-ID', {
-			weekday: 'long',
-		})
-			.format(new Date())
-			.toLowerCase();
-	};
-
 	const [activeDay, setActiveDay] = useState(getTodayInIndonesian);
-
 
 	const schedules = groupedSchedules[activeDay] ?? [];
 

@@ -10,30 +10,20 @@ export type Course = {
 	name: string;
 	sks: number;
 	semester: string;
-	studentCount: number | null;
+	room: string;
 	lecturers: Lecturer[];
 };
 
-export type Schedule = {
+export type ScheduleSlot = {
 	id: string;
 	time: string;
 	courses: Course[];
 };
 
 export type GroupedSchedule = {
-	[day: string]: {
-		id: string;
-		time: string;
-		courses: Course[];
-	}[];
-};
-
-export type GroupedItemType = {
-	id: string;
-	time: string;
-	courses: Course[];
+	[day: string]: ScheduleSlot[];
 };
 
 export type SchedulePropsType = {
-	schedules: GroupedItemType[];
+	schedules: ScheduleSlot[];
 };

@@ -1,7 +1,35 @@
 import Content from '@/components/content';
 import Header from '@/components/header';
-import { GroupedSchedule } from '@/lib/definitions';
+import { Course, GroupedSchedule, Lecturer } from '@/lib/definitions';
 import clientPromise from '@/lib/mongodb';
+
+function serializeLecturer(lecturer: Record<string, unknown>): Lecturer {
+	return {
+		_id: String(lecturer._id),
+		name: lecturer.name as string,
+		gender: lecturer.gender as string,
+		avatar: (lecturer.avatar as string) ?? null,
+		avatarFallback: lecturer.avatarFallback as string,
+	};
+}
+
+function serializeCourse(course: Record<string, unknown>): Course {
+	return {
+		name: course.name as string,
+		sks: course.sks as number,
+		semester: course.semester as string,
+		room: course.room as string,
+		lecturers: (course.lecturers as Record<string, unknown>[]).map(
+			serializeLecturer,
+		),
+	};
+}
+
+function parseStartTime(time: string): number {
+	const [start] = time.split(' - ');
+	const [hours, minutes] = start.split('.').map(Number);
+	return hours * 60 + minutes;
+}
 
 async function getGroupedSchedules(): Promise<GroupedSchedule> {
 	const client = await clientPromise;
@@ -11,7 +39,6 @@ async function getGroupedSchedules(): Promise<GroupedSchedule> {
 		.collection('schedules')
 		.aggregate([
 			{ $unwind: '$courses' },
-
 			{
 				$lookup: {
 					from: 'lecturers',
@@ -20,7 +47,6 @@ async function getGroupedSchedules(): Promise<GroupedSchedule> {
 					as: 'courses.lecturers',
 				},
 			},
-
 			{
 				$group: {
 					_id: {
@@ -31,7 +57,6 @@ async function getGroupedSchedules(): Promise<GroupedSchedule> {
 					courses: { $push: '$courses' },
 				},
 			},
-
 			{
 				$project: {
 					_id: '$_id.scheduleId',
@@ -55,16 +80,24 @@ async function getGroupedSchedules(): Promise<GroupedSchedule> {
 
 	const grouped: GroupedSchedule = {};
 
-	days.forEach((day) => {
+	for (const day of days) {
 		grouped[day] = [];
-	});
+	}
 
 	for (const item of schedules) {
 		grouped[item.day].push({
 			id: item._id.toString(),
 			time: item.time,
-			courses: item.courses,
+			courses: (item.courses as Record<string, unknown>[]).map(
+				serializeCourse,
+			),
 		});
+	}
+
+	for (const day of days) {
+		grouped[day].sort(
+			(a, b) => parseStartTime(a.time) - parseStartTime(b.time),
+		);
 	}
 
 	return grouped;
