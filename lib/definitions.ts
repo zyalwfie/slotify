@@ -25,5 +25,6 @@ export type GroupedSchedule = {
 };
 
 export type SchedulePropsType = {
+	day: string;
 	schedules: ScheduleSlot[];
 };

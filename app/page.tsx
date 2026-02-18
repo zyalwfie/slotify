@@ -111,7 +111,7 @@ export default async function Page() {
 			<Header />
 
 			<main className='px-4'>
-				<section className='max-w-5xl mx-auto mt-34 pb-10 flex flex-col gap-10'>
+				<section className='max-w-5xl mx-auto mt-26 pb-10 flex flex-col gap-10'>
 					<div className='flex flex-col gap-2 items-center'>
 						<h1 className='font-semibold text-3xl md:text-4xl lg:text-5xl text-center'>
 							Jadwal kuliah

@@ -31,19 +31,10 @@ export default function HeaderClock({ className }: { className?: string }) {
 		year: 'numeric',
 	}).format(time);
 
-
 	return (
-		<div
-			className={cn(
-				'flex flex-col items-center gap-1 leading-none',
-				'backdrop-blur px-4 py-2 rounded-full shadow border shadow-primary',
-				className,
-			)}
-		>
-            <div className='font-medium text-lg'>
-				{formattedDate}
-            </div>
-            <Separator />
+		<>
+			<div className='text-lg'>{formattedDate}</div>
+			<Separator orientation='vertical' className='mx-4' />
 			<div className='flex items-center'>
 				<div className='flex items-center'>
 					<AnimatedDigit value={hours[0]} />
@@ -60,6 +51,6 @@ export default function HeaderClock({ className }: { className?: string }) {
 					<AnimatedDigit value={seconds[1]} />
 				</div>
 			</div>
-		</div>
+		</>
 	);
 }

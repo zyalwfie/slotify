@@ -3,52 +3,28 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
 	Card,
-	CardAction,
+	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle,
+	CardAction,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-	CalendarRemove01Icon,
-	Door01Icon,
-	GraduationScrollIcon,
 	Time03Icon,
 	WeightScale01Icon,
+	GraduationScrollIcon,
+	Door01Icon,
 } from '@hugeicons/core-free-icons';
 import { Separator } from '../ui/separator';
 import React from 'react';
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle,
-} from '../ui/empty';
+import CourseCountdown from '@/components/ui/course-countdown';
+import EmptySchedule from './empty-schedule';
 
-function EmptyState() {
-	return (
-		<Empty className='border border-dashed'>
-			<EmptyHeader>
-				<EmptyMedia variant='icon'>
-					<HugeiconsIcon
-						icon={CalendarRemove01Icon}
-						strokeWidth={2}
-					/>
-				</EmptyMedia>
-				<EmptyTitle>Tidak ada jadwal kuliah hari ini</EmptyTitle>
-				<EmptyDescription>
-					Periksa hari lain dan jangan sampai kelewatan jadwal kuliah.
-				</EmptyDescription>
-			</EmptyHeader>
-		</Empty>
-	);
-}
-
-export default function ScheduleWrapper({ schedules }: SchedulePropsType) {
+export default function ScheduleWrapper({ day, schedules }: SchedulePropsType) {
 	if (schedules.length === 0) {
-		return <EmptyState />;
+		return <EmptySchedule />;
 	}
 
 	return (
@@ -76,8 +52,8 @@ export default function ScheduleWrapper({ schedules }: SchedulePropsType) {
 												<p className='flex gap-1 items-center'>
 													<HugeiconsIcon
 														icon={WeightScale01Icon}
-														size={18}
-													/>{' '}
+														size={16}
+													/>
 													{course.sks} SKS
 												</p>
 												<Separator orientation='vertical' />
@@ -86,7 +62,7 @@ export default function ScheduleWrapper({ schedules }: SchedulePropsType) {
 														icon={
 															GraduationScrollIcon
 														}
-														size={18}
+														size={16}
 													/>
 													Semester {course.semester}
 												</p>
@@ -96,11 +72,18 @@ export default function ScheduleWrapper({ schedules }: SchedulePropsType) {
 													<HugeiconsIcon
 														icon={Door01Icon}
 														strokeWidth={2}
-													/>{' '}
+													/>
 													{course.room}
 												</Badge>
 											</CardAction>
 										</CardHeader>
+
+										<CardContent>
+											<CourseCountdown
+												day={day}
+												time={schedule.time}
+											/>
+										</CardContent>
 
 										<CardFooter>
 											<div className='flex flex-col gap-3'>

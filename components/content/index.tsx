@@ -27,7 +27,7 @@ export default function Content({ groupedSchedules }: Props) {
 				onChange={setActiveDay}
 				groupedSchedules={groupedSchedules}
 			/>
-			<ScheduleWrapper schedules={schedules} />
+			<ScheduleWrapper day={activeDay} schedules={schedules} />
 		</div>
 	);
 }
